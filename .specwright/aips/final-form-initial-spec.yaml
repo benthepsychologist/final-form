@@ -1,0 +1,521 @@
+aip_id: AIP-final-form-2025-11-17-001
+context:
+  background: 'The research pipeline currently lacks a deterministic, version-controlled semantic processing
+    layer. Data flows from canonizer (structural normalization) directly to analysis, requiring researchers
+    to implement ad-hoc cleaning, scoring, and validation logic repeatedly.
+
+
+    final-form fills this gap by providing:
+
+    - **Deterministic processing:** Replayable, diffable transformations across versions
+
+    - **Semantic authority:** Single source of truth for scoring and interpretation
+
+    - **Research-ready outputs:** Fully validated, annotated, analysis-ready data
+
+    - **Clear separation of concerns:** Structural (canonizer) → Semantic (final-form) → Representation
+    (vector-projector)
+
+
+    This work establishes the foundation for all semantic processing in the research platform.'
+  constraints:
+  - Must validate inputs using canonizer-registry schemas
+  - Must be runnable standalone (CLI, notebook, script) without full stack
+  - Must maintain backward compatibility with canonical schemas
+  - No external API calls or side effects (pure semantic transformations)
+  - Scoring logic must be versioned and reproducible
+  - Questionnaire measure schema must be created in canonizer-registry (not in final-form)
+  - Registry is owned by canonizer-registry, final-form only consumes it
+  - No per-questionnaire scorer classes (use generic scoring engine)
+  - v0 implements ~13 measures, not 30
+created: '2025-11-17T14:53:29.020741+00:00'
+meta:
+  created_at: '2025-11-17T14:53:29.020741+00:00'
+  created_by: benthepsychologist
+objective:
+  acceptance_criteria:
+  - '`org.canonical/questionnaire_measure` schema created in canonizer-registry'
+  - Questionnaire registry contains ~13 standard measures with full definitions
+  - Registry validates against questionnaire_measure schema
+  - Measures use correct item prefixes (phq_9_, gad_7_, etc. with underscores)
+  - Form mapping schema created for form→measure mappings
+  - Example form mappings created (Google Forms, Typeform, etc.)
+  - Generic scoring engine interprets all scoring methods (sum, average, sum_then_double)
+  - Reverse scoring handled generically
+  - Multi-subscale questionnaires supported (e.g., PHLMS, FSCRS)
+  - 'Deterministic scoring: same input → same output'
+  - 'Mapper applies mapping JSON: platform IDs → canonical IDs'
+  - Value recoding handles both numeric and text answer values
+  - Errors clearly when item or value not in mapping
+  - Mapping files are simple, explicit contracts (no fuzzy matching)
+  - Canonical JSON → final-form JSON with zero ambiguity
+  - CLI can process JSONL batch inputs with mapping file specified
+  - 'CLI command: `final-form run --in forms.jsonl --out final.jsonl --mapping path/to/mapping.json`'
+  - Clear error messages and per-record diagnostics
+  - Golden test suite passes with 100% accuracy (test PHQ-9, GAD-7, MSI, PHLMS-10)
+  - Versioned, repeatable outputs with provenance metadata
+  - CI green (lint + unit tests)
+  - 80% test coverage achieved
+  - Integration test with canonizer output passes
+  goal: Build the final-form semantic processing engine that transforms canonical JSON input into fully
+    scored, normalized, validated, research-ready canonical output
+orchestrator_contract:
+  artifacts_dir: .aip_artifacts/AIP-final-form-2025-11-17-001
+  logging: jsonl
+  state_machine:
+    events:
+    - run_step
+    - await_gate
+    - approve
+    - reject
+    - retry
+    - escalate
+    - complete
+    states:
+    - pending
+    - running
+    - awaiting_human
+    - failed
+    - succeeded
+    - rolled_back
+plan:
+- description: Create Questionnaire Measure Schema in Canonizer-Registry
+  gate_ref: 'G0: Plan Approval'
+  kind: code
+  outputs:
+  - ~/canonizer-registry/schemas/org.canonical/questionnaire_measure/jsonschema/1-0-0.json
+  prompt: "Create the questionnaire measure schema at `~/canonizer-registry/schemas/org.canonical/questionnaire_measure/jsonschema/1-0-0.json`.\n\
+    The schema must validate the measure structure including:\n- Required fields: name, description, item_prefix,\
+    \ anchors, items, scores\n- Optional fields: interpretation, instructions\n- Anchors: min, max, labels\
+    \ (object with string keys and string values)\n- Items: array of strings\n- Scores: object where each\
+    \ key is a subscale ID containing:\n  - included_items: array of integers\n  - reversed_items: array\
+    \ of integers\n  - scoring: object with method (enum: \"sum\", \"average\", \"sum_then_double\"),\
+    \ min, max, higher_is_better\n  - ranges: array of range objects with min, max, label, severity, description\n\
+    Use the Iglu self-describing schema format matching other org.canonical schemas.\nValidate the schema\
+    \ against the example measures provided (phq_9, gad_7, etc.)."
+  role: coding_agent
+  step_id: step-001
+- description: Create Questionnaire Registry in Canonizer-Registry
+  gate_ref: 'G0: Plan Approval'
+  kind: code
+  outputs:
+  - ~/canonizer-registry/registries/questionnaire_measures.json
+  prompt: 'Create the questionnaire registry at `~/canonizer-registry/registries/questionnaire_measures.json`
+    (or appropriate location in canonizer-registry structure).
+
+    The registry should contain a top-level `measures` object with all ~13 measures:
+
+    - phq_9, gad_7, msi, safe, phlms_10, joy, sleep_disturbances, trauma_exposure, ptsd_screen, ipip_neo_60_c,
+    fscrs, pss_10, dts, cfs
+
+    Use the measure definitions provided, ensuring:
+
+    - All item_prefix values use underscores (phq_9_, gad_7_, etc.)
+
+    - All measures validate against the questionnaire_measure schema
+
+    - Scoring rules are complete and accurate
+
+    - Interpretation ranges are clinically valid
+
+    Update `REGISTRY_INDEX.json` to include the questionnaire registry reference.'
+  role: coding_agent
+  step_id: step-002
+- description: Create Form Mapping Schema & Example Mappings
+  gate_ref: 'G0: Plan Approval'
+  kind: code
+  outputs:
+  - ~/canonizer-registry/schemas/org.canonical/form_mapping/jsonschema/1-0-0.json
+  - ~/canonizer-registry/mappings/google_forms/mbc_initial_phq9_v1.json
+  - ~/canonizer-registry/mappings/google_forms/mbc_initial_gad7_v1.json
+  prompt: "Create the form mapping schema and example mapping files:\n1. **Form Mapping Schema:**\n  \
+    \ Create `~/canonizer-registry/schemas/org.canonical/form_mapping/jsonschema/1-0-0.json`\n   The schema\
+    \ must validate:\n   - mapping_id: string (unique identifier)\n   - form_provenance: object with platform,\
+    \ form_id, form_name, version\n   - target_measure: string (measure ID like \"phq_9\")\n   - item_mappings:\
+    \ array of objects with:\n     - form_question_id: string (platform-specific ID)\n     - form_question_text:\
+    \ string (question text for fallback matching)\n     - canonical_item_id: string (target measure item\
+    \ like \"phq_9_1\")\n     - notes: optional string\n   - value_mappings: object with:\n     - use_anchor_labels:\
+    \ boolean (use measure anchor labels for recoding)\n     - custom_mappings: object (custom value transformations\
+    \ if needed)\n2. **Example Mapping Files:**\n   Create example mappings in `~/canonizer-registry/mappings/`:\n\
+    \   - `google_forms/mbc_initial_phq9_v1.json` - PHQ-9 from Google Forms\n   - `google_forms/mbc_initial_gad7_v1.json`\
+    \ - GAD-7 from Google Forms\n   - At least 2-3 example mappings covering different platforms/measures"
+  role: coding_agent
+  step_id: step-003
+- description: Foundation - Package Structure & Registry Loaders
+  gate_ref: 'G1: Code Readiness'
+  kind: code
+  outputs:
+  - final_form/__init__.py
+  - final_form/registry/__init__.py
+  - final_form/registry/loader.py
+  - final_form/registry/models.py
+  - final_form/registry/mapping_loader.py
+  - final_form/registry/mapping_models.py
+  - final_form/io.py
+  - final_form/cli.py
+  - pyproject.toml
+  - tests/test_registry.py
+  - tests/test_mapping_loader.py
+  - tests/test_io.py
+  prompt: 'Create the Python package structure for final-form:
+
+    Package structure:
+
+    - `final_form/__init__.py`
+
+    - `final_form/registry/__init__.py` - Registry loader
+
+    - `final_form/registry/loader.py` - Load measure registry from canonizer-registry
+
+    - `final_form/registry/models.py` - Pydantic models for measure definitions
+
+    - `final_form/registry/mapping_loader.py` - Load form mapping files
+
+    - `final_form/registry/mapping_models.py` - Pydantic models for mapping definitions
+
+    - `final_form/io.py` - JSON/JSONL I/O
+
+    - `final_form/cli.py` - CLI skeleton with Typer
+
+    - `pyproject.toml` - Dependencies (pydantic, typer, jsonschema)
+
+    Registry loader should:
+
+    - Load questionnaire registry from canonizer-registry path
+
+    - Load form mapping files from canonizer-registry/mappings/
+
+    - Validate measures against questionnaire_measure schema
+
+    - Validate mappings against form_mapping schema
+
+    - Provide lookup by measure ID (e.g., "phq_9")
+
+    - Provide lookup by mapping ID or file path
+
+    CLI skeleton should accept:
+
+    - `--in` input JSONL path
+
+    - `--out` output JSONL path
+
+    - `--mapping` path to mapping file (required)
+
+    - `--registry` path to canonizer-registry (default: ~/canonizer-registry)
+
+    - `--diagnostics` optional diagnostics output path'
+  role: coding_agent
+  step_id: step-004
+- description: Item Mapping & Recoding
+  gate_ref: 'G1: Code Readiness'
+  kind: code
+  outputs:
+  - final_form/mapping/__init__.py
+  - final_form/mapping/mapper.py
+  - tests/test_mapper.py
+  - tests/fixtures/mapping/google_forms_phq9_input.json
+  - tests/fixtures/mapping/google_forms_phq9_expected.json
+  prompt: "Build a simple mapping engine:\n**Mapping logic:**\n- Load mapping JSON file\n- Load target\
+    \ measure from registry\n- For each answer in form:\n  - Look up `question_id` in mapping's `item_mappings`\
+    \ array\n  - Replace `question_id` with `canonical_item_id`\n  - If `question_id` not found in mapping:\
+    \ error (unmapped item)\n**Value recoding:**\n- If `answer_value` is numeric or numeric-as-string:\
+    \ parse to number, validate range\n- If `answer_value` is text: look up in measure's anchor labels,\
+    \ convert to number\n- If mapping specifies `custom_mappings`: use those instead of anchor labels\n\
+    - If value not mappable: error (invalid value)\n**That's it.** No fuzzy matching, no fallbacks, no\
+    \ heuristics. Just: load mapping JSON, apply transformations, error if something doesn't map."
+  role: coding_agent
+  step_id: step-005
+- description: Validation & Quality Checks
+  gate_ref: 'G1: Code Readiness'
+  kind: code
+  outputs:
+  - final_form/validation/__init__.py
+  - final_form/validation/checks.py
+  - tests/test_validation.py
+  prompt: 'Simple validation layer (minimal - mapper does the real work):
+
+    Validation checks:
+
+    - Verify all mapped items are present (no missing required items)
+
+    - Verify all numeric values are in valid range (anchor.min to anchor.max)
+
+    - Flag null/missing values for diagnostics
+
+    - That''s it
+
+    **Note:** This is a stub. Clinical use doesn''t need extensive cleaning/normalization. The mapper
+    handles text→numeric conversion and basic validation. Research teams can extend this step in future
+    versions if needed.'
+  role: coding_agent
+  step_id: step-006
+- description: Generic Scoring Engine
+  gate_ref: 'G1: Code Readiness'
+  kind: code
+  outputs:
+  - final_form/scoring/__init__.py
+  - final_form/scoring/engine.py
+  - final_form/scoring/reverse.py
+  - final_form/scoring/methods.py
+  - tests/test_scoring.py
+  - tests/fixtures/phq9/test_phq9_scoring.py
+  - tests/fixtures/gad7/test_gad7_scoring.py
+  - tests/fixtures/phlms10/test_phlms10_scoring.py
+  - tests/fixtures/phq9/valid_responses.json
+  - tests/fixtures/gad7/valid_responses.json
+  - tests/fixtures/phlms10/valid_responses.json
+  prompt: "Build the generic scoring engine:\nCore functionality:\n- Load measure definition from registry\n\
+    - Map form items to measure items using item_prefix\n- Extract item values by matching question_id\
+    \ or question_text\n- Apply reverse scoring for items in reversed_items array\n- Compute subscale\
+    \ scores using the method from scoring.method:\n  - \"sum\": sum of item values\n  - \"average\":\
+    \ mean of item values\n  - \"sum_then_double\": sum then multiply by 2\n- Validate computed scores\
+    \ are in range (scoring.min to scoring.max)\n- Apply interpretation ranges to assign severity labels\n\
+    - Handle partial responses (missing items):\n  - Flag missing items\n  - Compute scores if enough\
+    \ items present (configurable threshold)\n  - Add missingness metadata\nSupport multi-subscale measures:\n\
+    - Compute all subscales defined in measure.scores\n- Each subscale can have different included_items\
+    \ and reversed_items\n- Each subscale has independent interpretation ranges\nThe scoring engine should\
+    \ be completely generic - no questionnaire-specific code."
+  role: coding_agent
+  step_id: step-007
+- description: Interpretation & Metadata Layer
+  gate_ref: 'G1: Code Readiness'
+  kind: code
+  outputs:
+  - final_form/interpretation/__init__.py
+  - final_form/interpretation/ranges.py
+  - final_form/interpretation/metadata.py
+  - tests/test_interpretation.py
+  - tests/test_metadata.py
+  prompt: "Implement the interpretation layer:\nInterpretation:\n- Apply ranges from measure.scores[subscale].ranges\n\
+    - Match computed score to appropriate range (min <= score <= max)\n- Add severity classification field\
+    \ (minimal, mild, moderate, severe, etc.)\n- Add interpretation label and description\nMetadata annotation:\n\
+    - Add provenance fields (final-form version, processing timestamp)\n- Add data quality fields:\n \
+    \ - completeness percentage\n  - missing_items count and list\n  - out_of_range_items count and list\n\
+    \  - invalid_items count and list\n- Add scoring metadata:\n  - measure_id (e.g., \"phq_9\")\n  -\
+    \ measure_name\n  - subscale scores with interpretations\n  - scoring_method used\nQuality flags:\n\
+    - \"complete\": all items present and valid\n- \"partial\": some items missing but score computable\n\
+    - \"invalid\": too many missing items or critical errors\n- \"out_of_range\": some values outside\
+    \ valid range"
+  role: coding_agent
+  step_id: step-008
+- description: Output Builders & Diagnostics
+  gate_ref: 'G1: Code Readiness'
+  kind: code
+  outputs:
+  - final_form/emitters/__init__.py
+  - final_form/emitters/canonical.py
+  - final_form/diagnostics/__init__.py
+  - final_form/diagnostics/models.py
+  - final_form/diagnostics/aggregator.py
+  - tests/test_emitters.py
+  - tests/test_diagnostics.py
+  prompt: 'Create output emitters:
+
+    Canonical output builder:
+
+    - Build final `org.canonical/questionnaire_response` object
+
+    - Include all original form_response fields
+
+    - Add scores object with all subscale scores
+
+    - Add interpretations object with severity labels
+
+    - Add metadata object with provenance and quality metrics
+
+    - Ensure output validates against canonical schema
+
+    Diagnostics builder:
+
+    - Build diagnostic object for each processed record
+
+    - Include errors array (critical issues preventing scoring)
+
+    - Include warnings array (non-critical issues)
+
+    - Include missingness details (which items, count, percentage)
+
+    - Include out-of-range details (which items, values, expected range)
+
+    - Include processing metadata (time, measure detected, score computed)
+
+    Diagnostic output modes:
+
+    - Per-record diagnostics (JSONL parallel to output)
+
+    - Aggregate diagnostics (summary JSON with statistics)'
+  role: coding_agent
+  step_id: step-009
+- description: CLI Integration & Pipeline Orchestration
+  gate_ref: 'G2: Pre-Release'
+  kind: code
+  outputs:
+  - final_form/cli/run.py
+  - final_form/pipeline/__init__.py
+  - final_form/pipeline/orchestrator.py
+  - tests/test_cli.py
+  - tests/integration/test_pipeline.py
+  - tests/fixtures/batch/sample.jsonl
+  - tests/fixtures/batch/sample_mapping.json
+  prompt: "Integrate all components into the CLI pipeline:\nPipeline flow:\n1. Load measure registry from\
+    \ canonizer-registry\n2. Load form mapping file (from --mapping argument)\n3. Load target measure\
+    \ definition from registry\n4. Read JSONL input (form_response records)\n5. For each record:\n   -\
+    \ Validate against form_response schema\n   - **Map & recode:** Apply mapping to transform platform\
+    \ IDs → canonical IDs, values → numeric\n   - **Validate:** Check all items present, values in range\n\
+    \   - **Score:** Compute all subscales using generic engine\n   - **Interpret:** Apply severity ranges\n\
+    \   - **Emit:** Build canonical questionnaire_response with metadata\n   - **Diagnostics:** Capture\
+    \ any issues\n6. Write outputs (questionnaire_response JSONL)\n7. Write diagnostics (if --diagnostics\
+    \ flag provided)\nError handling:\n- Continue processing on per-record errors\n- Collect errors in\
+    \ diagnostics\n- Log summary statistics at end\n- Non-zero exit code if any critical errors\nLogging:\n\
+    - Progress bar for batch processing\n- Summary statistics (processed, scored, errors)\n- Performance\
+    \ metrics (records/second)"
+  role: coding_agent
+  step_id: step-010
+- description: Golden Tests & Comprehensive Test Suite
+  gate_ref: 'G2: Pre-Release'
+  kind: code
+  outputs:
+  - tests/fixtures/phq9/valid_complete.json
+  - tests/fixtures/phq9/text_anchors.json
+  - tests/fixtures/phq9/partial_missing.json
+  - tests/fixtures/phq9/out_of_range.json
+  - tests/fixtures/gad7/
+  - tests/fixtures/phlms10/
+  - tests/fixtures/fscrs/
+  - tests/golden/phq9/
+  - tests/golden/gad7/
+  - tests/golden/phlms10/
+  - tests/integration/test_canonizer_integration.py
+  - tests/golden/test_determinism.py
+  - .github/workflows/ci.yml
+  prompt: 'Build comprehensive test suite:
+
+    Golden test cases (per measure):
+
+    - Valid complete responses (all items present, valid values)
+
+    - Text anchor responses (need normalization)
+
+    - Partial responses (some items missing)
+
+    - Out-of-range values (negative, exceeds max)
+
+    - Edge cases (all minimum values, all maximum values)
+
+    - Mixed valid/invalid items
+
+    Multi-measure tests:
+
+    - PHQ-9 (single subscale)
+
+    - GAD-7 (single subscale)
+
+    - PHLMS-10 (two subscales: awareness, acceptance)
+
+    - FSCRS (four subscales: inadequacy, self_hatred, self_reassurance, self_criticism)
+
+    - IPIP-NEO-60-C (seven subscales)
+
+    Integration tests:
+
+    - Real canonizer output → final-form pipeline
+
+    - Batch processing with mixed measures
+
+    - Error recovery and diagnostics
+
+    Golden outputs:
+
+    - Store expected outputs for each test case
+
+    - Assert exact match (determinism check)
+
+    - Version golden outputs with schema version
+
+    Coverage targets:
+
+    - Overall: 80%+
+
+    - Scoring engine: 95%+
+
+    - Registry loader: 90%+
+
+    - Pipeline orchestrator: 85%+'
+  role: coding_agent
+  step_id: step-011
+- description: Documentation & Release Preparation
+  gate_ref: 'G4: Post-Implementation'
+  kind: code
+  outputs:
+  - README.md
+  - docs/CLI.md
+  - docs/API.md
+  - docs/REGISTRY.md
+  - CHANGELOG.md
+  - pyproject.toml
+  prompt: 'Prepare v0.1.0 release:
+
+    README:
+
+    - Installation instructions
+
+    - Quick start examples
+
+    - CLI usage
+
+    - Architecture overview (link to FINAL-FORM-ARCH.md)
+
+    CLI Documentation:
+
+    - All commands and flags
+
+    - Examples for common use cases
+
+    - Auto-detection behavior
+
+    - Error handling guide
+
+    - Diagnostics interpretation
+
+    API Documentation:
+
+    - Registry loader API
+
+    - Scoring engine API
+
+    - Pipeline orchestration API
+
+    - Usage in Python scripts/notebooks
+
+    Release notes:
+
+    - Features implemented
+
+    - Measures supported (list all ~13)
+
+    - Breaking changes (none for v0.1.0)
+
+    - Known limitations
+
+    - Future roadmap
+
+    Version tagging:
+
+    - Update version to 0.1.0 in pyproject.toml
+
+    - Create git tag v0.1.0
+
+    - Generate changelog'
+  role: coding_agent
+  step_id: step-012
+project_slug: final-form
+repo:
+  default_branch: main
+  url: git@github.com:benthepsychologist/final-form.git
+  working_branch: feat/final-form-initial-spec
+spec_version: 1.0.0
+tier: B
+title: Final Form v0.1.0 - Questionnaire Semantic Processing Engine
+updated: '2025-11-17T17:00:00+00:00'
+version: '0.1'
+

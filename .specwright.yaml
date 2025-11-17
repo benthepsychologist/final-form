@@ -1,0 +1,12 @@
+version: '0.1'
+paths:
+  specs: .specwright/specs
+  aips: .specwright/aips
+repo:
+  default_branch: main
+user:
+  default_owner: null
+  default_tier: null
+current:
+  spec: .specwright/specs/final-form-initial-spec.md
+  aip: /home/user/final-form/.specwright/aips/final-form-initial-spec.yaml
