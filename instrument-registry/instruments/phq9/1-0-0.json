@@ -1,0 +1,185 @@
+{
+  "type": "instrument_spec",
+  "instrument_id": "phq9",
+  "version": "1.0.0",
+  "name": "Patient Health Questionnaire-9",
+  "kind": "questionnaire",
+  "locale": "en-US",
+  "aliases": ["PHQ-9", "PHQ9", "PHQ 9"],
+  "description": "A 9-item depression screening tool plus severity assessment",
+  "items": [
+    {
+      "item_id": "phq9_item1",
+      "position": 1,
+      "text": "Little interest or pleasure in doing things",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item2",
+      "position": 2,
+      "text": "Feeling down, depressed, or hopeless",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item3",
+      "position": 3,
+      "text": "Trouble falling or staying asleep, or sleeping too much",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item4",
+      "position": 4,
+      "text": "Feeling tired or having little energy",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item5",
+      "position": 5,
+      "text": "Poor appetite or overeating",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item6",
+      "position": 6,
+      "text": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item7",
+      "position": 7,
+      "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item8",
+      "position": 8,
+      "text": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item9",
+      "position": 9,
+      "text": "Thoughts that you would be better off dead or of hurting yourself in some way",
+      "response_map": {
+        "not at all": 0,
+        "several days": 1,
+        "more than half the days": 2,
+        "nearly every day": 3
+      },
+      "aliases": {
+        "more than half of the days": "more than half the days"
+      }
+    },
+    {
+      "item_id": "phq9_item10",
+      "position": 10,
+      "text": "If you checked off any problems, how difficult have these problems made it for you to do your work, take care of things at home, or get along with other people?",
+      "response_map": {
+        "not difficult at all": 0,
+        "somewhat difficult": 1,
+        "very difficult": 2,
+        "extremely difficult": 3
+      },
+      "aliases": {}
+    }
+  ],
+  "scales": [
+    {
+      "scale_id": "phq9_total",
+      "name": "PHQ-9 Total Score",
+      "items": ["phq9_item1", "phq9_item2", "phq9_item3", "phq9_item4", "phq9_item5", "phq9_item6", "phq9_item7", "phq9_item8", "phq9_item9"],
+      "method": "sum",
+      "reversed_items": [],
+      "min": 0,
+      "max": 27,
+      "missing_allowed": 1,
+      "interpretations": [
+        { "min": 0, "max": 4, "label": "Minimal" },
+        { "min": 5, "max": 9, "label": "Mild" },
+        { "min": 10, "max": 14, "label": "Moderate" },
+        { "min": 15, "max": 19, "label": "Moderately severe" },
+        { "min": 20, "max": 27, "label": "Severe" }
+      ]
+    },
+    {
+      "scale_id": "phq9_severity",
+      "name": "PHQ-9 Functional Severity",
+      "items": ["phq9_item10"],
+      "method": "sum",
+      "reversed_items": [],
+      "min": 0,
+      "max": 3,
+      "missing_allowed": 0,
+      "interpretations": [
+        { "min": 0, "max": 0, "label": "Not difficult at all" },
+        { "min": 1, "max": 1, "label": "Somewhat difficult" },
+        { "min": 2, "max": 2, "label": "Very difficult" },
+        { "min": 3, "max": 3, "label": "Extremely difficult" }
+      ]
+    }
+  ]
+}

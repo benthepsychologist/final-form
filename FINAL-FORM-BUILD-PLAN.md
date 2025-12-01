@@ -1,213 +1,556 @@
-FINAL-FORM-BUILD-PLAN.md
+# FINAL-FORM Build Plan
 
-(Execution & Implementation Plan)
+**Version:** 0.2.0
+**Status:** Ready for Implementation
 
-Title
+---
 
-FINAL-FORM Build Plan
-Version: 0.1.0
-Status: Ready for Implementation
+## 1. Objective
 
-⸻
+Build the **final-form** semantic processing engine that transforms canonical JSON input into **immutable MeasurementEvent objects** with full provenance, scoring, and interpretation.
 
-1. Objective
+This build plan follows a **registry-first** approach: define specs before writing code.
 
-Build the final-form semantic processing engine that transforms canonical JSON input into fully scored, normalized, validated, research-ready canonical output.
+---
 
-This build plan is minimal, focused, and ready for execution with specwright + agentic coding.
+## 2. Scope (v0.1)
 
-⸻
+### Included
 
-2. Scope (v0)
+- **Registry Setup:** Instrument registry + Form registry + Finalization registry
+- **Instruments:** PHQ-9, GAD-7 (with architecture supporting ~13)
+- **Full Pipeline:** Binding → Mapping → Recoding → Scoring → Interpretation → Emission
+- **Output Model:** MeasurementEvent + Observations (FHIR-aligned)
+- **CLI:** Batch processing with explicit binding spec
+- **Diagnostics:** Errors, warnings, quality metrics
+- **JSON-only:** All specs in JSON, SemVer'd
 
-Included:
-	•	PHQ-9 instrument pipeline
-	•	Cleaning + normalization + scoring + interpretation
-	•	CLI for batch processing
-	•	JSONL-in / JSONL-out
-	•	Plugin framework placeholder
-	•	Diagnostics (missingness, invalid values)
+### Excluded
 
-Excluded:
-	•	Dataset adapters (pandas/arrow)
-	•	SDK layering
-	•	Vectorization
-	•	Arch-gov integration
+- Dataset adapters (pandas/arrow) — downstream concern
+- SDK layering
+- Vectorization
+- Arch-gov integration
+- Authoring tools (fuzzy matching for binding generation)
 
 These come later.
 
-⸻
+---
 
-3. Deliverables
-	1.	Python package: final_form/
-	2.	CLI: final-form
-	3.	Module structure:
-	•	cleaning/
-	•	normalization/
-	•	scoring/
-	•	interpretation/
-	•	emitters/
-	•	diagnostics/
-	•	cli/
-	•	schemas/ (internal references only)
-	4.	Test suite:
-	•	PHQ9 fixtures (canonical → final-form)
-	•	edge cases (missing, illegal values)
-	•	golden outputs
-	5.	Integration test with canonizer output
-	6.	Version: v0.1.0
+## 3. Deliverables
 
-⸻
+### 3.1 Registries
 
-4. Work Breakdown Structure (WBS)
+| Registry | Contents | Location |
+|----------|----------|----------|
+| **instrument-registry** | PHQ-9, GAD-7 definitions | `instrument-registry/instruments/` |
+| **form-binding-registry** | Example binding specs | `form-binding-registry/bindings/` |
+| **schemas** | JSON Schemas for all spec types | `schemas/` |
 
-Phase 1 — Foundation (Config, Models, IO)
-	•	Create package scaffold
-	•	JSON loader + JSONL batch reader
-	•	Validation wrapper (using canonizer-registry schemas)
-	•	Minimal PHQ9 schema references
-	•	CLI skeleton with run command
+### 3.2 Python Package
 
-Artifacts:
-	•	final_form/__init__.py
-	•	final_form/io.py
-	•	final_form/cli.py
-	•	pyproject.toml
+```
+final_form/
+├── __init__.py
+├── registry/
+│   ├── __init__.py
+│   ├── instruments.py      # Load instrument specs
+│   ├── bindings.py         # Load form binding specs
+│   └── models.py           # Pydantic models for specs
+├── mapping/
+│   └── mapper.py           # Form item → instrument item
+├── recoding/
+│   └── recoder.py          # Text → numeric conversion
+├── validation/
+│   └── checks.py           # Range checks, completeness
+├── scoring/
+│   └── engine.py           # Generic scoring engine
+├── interpretation/
+│   └── interpreter.py      # Severity bands, labels
+├── emitters/
+│   └── measurement.py      # MeasurementEvent builder
+├── diagnostics/
+│   └── collector.py        # Error/warning collection
+├── cli/
+│   └── run.py              # Typer CLI
+└── schemas/
+    └── *.json              # JSON Schema files
+```
 
-⸻
+### 3.3 CLI
 
-Phase 2 — Cleaning + Normalization Pipeline
-	•	Text cleaning helpers
-	•	Anchor normalization
-	•	Text→numeric conversion
-	•	Range enforcement
-	•	Missingness detection
+```bash
+final-form run \
+  --in forms.jsonl \
+  --out measurements.jsonl \
+  --binding intake_v1 \
+  --instrument-registry ./instrument-registry \
+  --form-binding-registry ./form-binding-registry
+```
 
-Artifacts:
-	•	final_form/cleaning/*.py
-	•	final_form/normalization/*.py
+### 3.4 Test Suite
 
-⸻
+- Golden tests for PHQ-9, GAD-7
+- Edge cases (missing items, out-of-range, text anchors)
+- Determinism verification
+- Integration with canonical form responses
 
-Phase 3 — Scoring Engine (PHQ-9 v0)
-	•	Load PHQ9 scoring rules (from questionnaire definition)
-	•	Implement item scoring
-	•	Reverse scoring support
-	•	Compute total score
-	•	Validate scoring logic
+---
 
-Artifacts:
-	•	final_form/scoring/phq9.py
-	•	tests/phq9/test_scoring.py
+## 4. Work Breakdown Structure
 
-⸻
+### Phase 1: Registry & Schema Foundation
 
-Phase 4 — Interpretation Layer
-	•	Apply interpretation ranges
-	•	Add severity fields
-	•	Missingness summary fields
+**Objective:** Define all JSON schemas and create initial registry structure.
 
-Artifacts:
-	•	final_form/interpretation/phq9.py
+**Artifacts:**
 
-⸻
+```
+schemas/
+├── instrument_spec.schema.json
+├── form_binding_spec.schema.json
+├── finalform_spec.schema.json
+├── measurement_event.schema.json
+└── observation.schema.json
 
-Phase 5 — Emitters & Output Builders
-	•	Build final canonical questionnaire_response object
-	•	Add provenance and metadata fields
-	•	Add diagnostic object model
+instrument-registry/
+├── instruments/
+│   ├── phq9/1-0-0.json
+│   └── gad7/1-0-0.json
+└── README.md
 
-Artifacts:
-	•	final_form/emitters/*.py
-	•	final_form/diagnostics/*.py
+form-binding-registry/
+├── bindings/
+│   └── example_intake_v1/1-0-0.json
+└── README.md
+```
 
-⸻
+**Key Points:**
+- JSON only (no YAML)
+- All specs SemVer'd
+- Schemas validate specs
 
-Phase 6 — CLI Integration & Batch Runner
-	•	Connect all phases in one pipeline
-	•	Stream JSONL events
-	•	Write outputs + diagnostics
-	•	Add instrument auto-detection
+---
 
-Artifacts:
-	•	final_form/cli/run.py
-	•	tests/test_cli.py
+### Phase 2: Package Foundation
 
-⸻
+**Objective:** Create package scaffold with registry loaders.
 
-Phase 7 — Tests & Fixtures
-	•	Valid PHQ9 canonical inputs
-	•	Dirty text inputs (text anchors)
-	•	Missing values
-	•	Out-of-range values
-	•	Golden outputs for final-form results
+**Artifacts:**
 
-Artifacts:
-	•	tests/fixtures/phq9/*.json
-	•	tests/golden/phq9/*.json
+```
+final_form/
+├── __init__.py
+├── registry/
+│   ├── __init__.py
+│   ├── instruments.py
+│   ├── bindings.py
+│   └── models.py
+├── io.py
+└── cli.py
 
-⸻
+pyproject.toml
+tests/
+├── test_registry.py
+└── conftest.py
+```
 
-5. Sequence Diagram (High-Level)
+**Registry loader behavior:**
+- Load instrument specs from `instrument-registry/instruments/<id>/<version>.json`
+- Load binding specs from `form-binding-registry/bindings/<id>/<version>.json`
+- Validate against JSON schemas
+- Provide lookup by ID and version
 
-canonical JSONL
-    →
-validate (canonizer-registry)
-    →
-clean_text
-    →
-normalize_values
-    →
-score_items
-    →
-compute_total
-    →
-interpret
-    →
-emit_final_canonical
-    →
-write_output
-    →
-diagnostics
+---
 
+### Phase 3: Mapping & Recoding
 
-⸻
+**Objective:** Implement form item → instrument item mapping with value recoding.
 
-6. Risks & Mitigations
+**Artifacts:**
 
-Risk	Mitigation
-Scoring logic drift	Use questionnaire definitions as the source of truth
-Inconsistent canonical inputs	Validate using canonizer-registry schemas
-Researchers misunderstand failures	Produce clear per-record diagnostics
-Plugin explosion	Keep v0 scoped to PHQ9 only
+```
+final_form/
+├── mapping/
+│   └── mapper.py
+└── recoding/
+    └── recoder.py
 
+tests/
+├── test_mapper.py
+└── test_recoder.py
+```
 
-⸻
+**Mapping logic:**
+1. Load binding spec
+2. For each form item, lookup by `field_key` or `position`
+3. Map to `instrument_item_id`
+4. **Error if not found** (no fallbacks)
 
-7. Success Criteria
-	•	Deterministic PHQ-9 scoring end-to-end
-	•	Canonical JSON → final-form JSON with zero ambiguity
-	•	CLI can process JSONL batch inputs
-	•	Golden test suite passes
-	•	Clear error messages and diagnostics
-	•	Versioned, repeatable outputs
+**Recoding logic:**
+1. If value is numeric: validate range, pass through
+2. If value is text: lookup in instrument's `response_map`
+3. If text has alias: resolve alias first
+4. **Error if not mappable** (no fuzzy matching)
 
-⸻
+---
 
-8. Future Versions
-	•	v0.2 — GAD-7 + missingness metrics
-	•	v0.3 — measurement emitter
-	•	v1.0 — plugin architecture
-	•	v2.0 — SDK wrappers (pandas, arrow)
-	•	v3.0 — research façade (batch scoring, embeddings)
+### Phase 4: Validation & Quality Checks
 
-⸻
+**Objective:** Light validation layer after mapping.
 
-End of FINAL-FORM-BUILD-PLAN.md
+**Artifacts:**
 
-⸻
+```
+final_form/
+└── validation/
+    └── checks.py
 
-If you want, I’ll now generate:
-	•	FINAL-FORM-SPEC.md scaffold
-	•	the canonical example pipeline for PHQ9
-	•	or the integration stanza for your MASTER-ARCH.md.
+tests/
+└── test_validation.py
+```
+
+**Validation checks:**
+- All required items present (per binding spec)
+- All values in valid range (per instrument spec)
+- Flag missing items with count
+- Flag out-of-range values
+
+**Output:** Validation result with issues list.
+
+---
+
+### Phase 5: Generic Scoring Engine
+
+**Objective:** Single scoring engine that interprets instrument specs.
+
+**Artifacts:**
+
+```
+final_form/
+└── scoring/
+    ├── __init__.py
+    ├── engine.py
+    ├── methods.py
+    └── reverse.py
+
+tests/
+├── test_scoring_engine.py
+├── test_phq9_scoring.py
+└── test_gad7_scoring.py
+```
+
+**Scoring engine behavior:**
+1. Load instrument spec
+2. For each scale in instrument:
+   - Get item values
+   - Apply reverse scoring for `reversed_items`
+   - Compute score using `method` (sum, average, sum_then_double)
+   - Handle missing items per `missing_allowed` threshold
+3. Return scale scores
+
+**No per-questionnaire code.** The engine reads scoring rules from the spec.
+
+---
+
+### Phase 6: Interpretation Layer
+
+**Objective:** Apply severity bands and add interpretation labels.
+
+**Artifacts:**
+
+```
+final_form/
+└── interpretation/
+    └── interpreter.py
+
+tests/
+└── test_interpretation.py
+```
+
+**Interpretation logic:**
+1. For each scale score:
+   - Find matching range in `interpretations` (min <= score <= max)
+   - Add `label` (e.g., "Moderate")
+   - Add any additional metadata (severity level, description)
+2. Handle edge cases (score exactly at boundary)
+
+---
+
+### Phase 7: MeasurementEvent Emitter
+
+**Objective:** Build final output objects.
+
+**Artifacts:**
+
+```
+final_form/
+└── emitters/
+    └── measurement.py
+
+tests/
+└── test_emitters.py
+```
+
+**MeasurementEvent structure:**
+```json
+{
+  "schema": "com.lifeos.measurement_event.v1",
+  "measurement_event_id": "uuid",
+  "instrument_id": "phq9",
+  "instrument_version": "1.0.0",
+  "subject_id": "contact::<uuid>",
+  "timestamp": "ISO8601",
+  "source": {
+    "form_id": "googleforms::<id>",
+    "form_submission_id": "subm::<id>",
+    "form_correlation_id": "...",
+    "binding_id": "intake_v1",
+    "binding_version": "1.0.0"
+  },
+  "observations": [...],
+  "telemetry": {
+    "processed_at": "ISO8601",
+    "final_form_version": "0.1.0",
+    "instrument_spec": "phq9@1.0.0",
+    "form_binding_spec": "intake_v1@1.0.0"
+  }
+}
+```
+
+**Observation structure:**
+```json
+{
+  "schema": "com.lifeos.observation.v1",
+  "observation_id": "uuid",
+  "instrument_id": "phq9",
+  "code": "phq9_item1",
+  "kind": "item",
+  "value": 2,
+  "value_type": "integer"
+}
+```
+
+---
+
+### Phase 8: Diagnostics
+
+**Objective:** Collect and emit processing diagnostics.
+
+**Artifacts:**
+
+```
+final_form/
+└── diagnostics/
+    ├── __init__.py
+    ├── collector.py
+    └── models.py
+
+tests/
+└── test_diagnostics.py
+```
+
+**Diagnostic object:**
+```json
+{
+  "form_submission_id": "...",
+  "status": "success|partial|failed",
+  "errors": [...],
+  "warnings": [...],
+  "quality": {
+    "completeness": 0.89,
+    "missing_items": ["phq9_item3"],
+    "out_of_range_items": []
+  }
+}
+```
+
+---
+
+### Phase 9: CLI Integration
+
+**Objective:** Wire everything into the CLI pipeline.
+
+**Artifacts:**
+
+```
+final_form/
+├── cli/
+│   └── run.py
+└── pipeline/
+    └── orchestrator.py
+
+tests/
+├── test_cli.py
+└── integration/
+    └── test_pipeline.py
+```
+
+**Pipeline flow:**
+1. Load binding spec (from `--binding`)
+2. Load instrument specs (for instruments in binding)
+3. Read input JSONL
+4. For each record:
+   - Map items using binding
+   - Recode values using instrument response_map
+   - Validate completeness and ranges
+   - Score using generic engine
+   - Interpret using severity bands
+   - Emit MeasurementEvent(s)
+   - Collect diagnostics
+5. Write output JSONL
+6. Write diagnostics (if `--diagnostics` specified)
+
+---
+
+### Phase 10: Golden Tests & CI
+
+**Objective:** Comprehensive test coverage with determinism verification.
+
+**Artifacts:**
+
+```
+tests/
+├── fixtures/
+│   ├── canonical/
+│   │   ├── phq9_complete.json
+│   │   ├── phq9_partial.json
+│   │   ├── gad7_complete.json
+│   │   └── multi_instrument.json
+│   └── bindings/
+│       └── test_binding.json
+├── golden/
+│   ├── phq9_complete_expected.json
+│   ├── phq9_partial_expected.json
+│   └── gad7_complete_expected.json
+├── test_determinism.py
+└── integration/
+    └── test_end_to_end.py
+
+.github/workflows/ci.yml
+```
+
+**Golden test approach:**
+1. Input: canonical form response + binding spec
+2. Expected: exact MeasurementEvent output
+3. Assert byte-for-byte equality (determinism)
+
+**Determinism test:**
+```python
+for _ in range(5):
+    result = process(input)
+    assert result == expected  # Same every time
+```
+
+---
+
+## 5. Processing Flow Diagram
+
+```
+canonical form_response (JSONL)
+         │
+         ▼
+┌─────────────────────┐
+│  Load Binding Spec  │ ← form-registry
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│ For each section:   │
+│   Load Instrument   │ ← instrument-registry
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Map Form Items    │  field_key/position → instrument_item_id
+│   to Instrument     │
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Recode Values     │  text → numeric using response_map
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Validate          │  completeness, ranges
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Score             │  generic engine, reads from spec
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Interpret         │  severity bands, labels
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Emit              │  MeasurementEvent + Observations
+└─────────────────────┘
+         │
+         ▼
+MeasurementEvents (JSONL) + Diagnostics
+```
+
+---
+
+## 6. Success Criteria
+
+| Criterion | Measure |
+|-----------|---------|
+| **Determinism** | Same input → same output, verified by repeated runs |
+| **Scoring accuracy** | Golden tests pass for PHQ-9, GAD-7 |
+| **No inference** | All mappings explicit, errors on missing bindings |
+| **Full provenance** | Every output includes telemetry with all spec versions |
+| **Test coverage** | 80% overall, 95% for scoring engine |
+| **CI green** | Lint + unit tests + integration tests pass |
+
+---
+
+## 7. Risks & Mitigations
+
+| Risk | Mitigation |
+|------|------------|
+| Registry not set up before code | Phase 1 is registry-only, blocks Phase 2 |
+| Scoring drift | Registry is source of truth, no hardcoded rules |
+| Missing bindings at runtime | Fail loudly with clear error messages |
+| Schema evolution | SemVer all specs, telemetry tracks versions |
+
+---
+
+## 8. Dependencies
+
+**External:**
+- Canonical form responses from canonizer
+- JSON Schemas for validation
+
+**Internal:**
+- instrument-registry must exist before scoring
+- form-binding-registry must have binding for each form processed
+
+---
+
+## 9. Future Versions
+
+| Version | Scope |
+|---------|-------|
+| **v0.2** | ~13 instruments, enhanced diagnostics |
+| **v0.3** | correlation_id support, batch correlation |
+| **v1.0** | Stable API, plugin architecture |
+| **v2.0** | Authoring tools (fuzzy matching for binding generation) |
+| **v3.0** | Cross-domain expansion (labs, vitals, wearables) |
+
+---
+
+## 10. Summary
+
+This build plan follows three principles:
+
+1. **Registry-first:** Define specs in JSON before writing code
+2. **No inference:** All mappings explicit, errors on ambiguity
+3. **FHIR-aligned output:** MeasurementEvents + Observations, ready for healthcare interop
+
+The result is a deterministic, reproducible semantic processing engine that transforms canonical form responses into research-ready measure instances.

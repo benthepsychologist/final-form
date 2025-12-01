@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lifeos.com/schemas/measurement_event/1-0-0.json",
+  "title": "Measurement Event",
+  "description": "Schema for finalized measurement events (FHIR-aligned QuestionnaireResponse equivalent)",
+  "type": "object",
+  "required": ["schema", "measurement_event_id", "instrument_id", "instrument_version", "subject_id", "timestamp", "source", "observations", "telemetry"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "com.lifeos.measurement_event.v1",
+      "description": "Schema identifier"
+    },
+    "measurement_event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this measurement event"
+    },
+    "instrument_id": {
+      "type": "string",
+      "description": "The instrument that was administered"
+    },
+    "instrument_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of the instrument spec used"
+    },
+    "subject_id": {
+      "type": "string",
+      "description": "Identifier for the subject (e.g., contact::<uuid>)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the measurement was taken (ISO 8601)"
+    },
+    "source": {
+      "type": "object",
+      "required": ["form_id", "form_submission_id", "binding_id", "binding_version"],
+      "description": "Source information for this measurement",
+      "properties": {
+        "form_id": {
+          "type": "string",
+          "description": "Platform-specific form identifier"
+        },
+        "form_submission_id": {
+          "type": "string",
+          "description": "Unique submission identifier"
+        },
+        "form_correlation_id": {
+          "type": "string",
+          "description": "Correlation ID linking related measurements from the same form"
+        },
+        "binding_id": {
+          "type": "string",
+          "description": "Binding spec used"
+        },
+        "binding_version": {
+          "type": "string",
+          "description": "Binding spec version used"
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of observations (items and scales)",
+      "items": {
+        "$ref": "observation.schema.json"
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "required": ["processed_at", "final_form_version", "instrument_spec", "form_binding_spec"],
+      "description": "Processing provenance",
+      "properties": {
+        "processed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When final-form processed this record"
+        },
+        "final_form_version": {
+          "type": "string",
+          "description": "Version of final-form that processed this"
+        },
+        "instrument_spec": {
+          "type": "string",
+          "description": "Instrument spec reference (e.g., phq9@1.0.0)"
+        },
+        "form_binding_spec": {
+          "type": "string",
+          "description": "Binding spec reference (e.g., intake_v1@1.2.0)"
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Any warnings generated during processing"
+        }
+      }
+    }
+  }
+}

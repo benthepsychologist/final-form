@@ -9,4 +9,4 @@ user:
   default_tier: null
 current:
   spec: .specwright/specs/final-form-initial-spec.md
-  aip: /home/user/final-form/.specwright/aips/final-form-initial-spec.yaml
+  aip: /workspace/final-form/.specwright/aips/final-form-initial-spec.yaml

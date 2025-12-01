@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lifeos.com/schemas/observation/1-0-0.json",
+  "title": "Observation",
+  "description": "Schema for individual observations (FHIR-aligned Observation equivalent)",
+  "type": "object",
+  "required": ["schema", "observation_id", "instrument_id", "code", "kind", "value", "value_type"],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "com.lifeos.observation.v1",
+      "description": "Schema identifier"
+    },
+    "observation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this observation"
+    },
+    "instrument_id": {
+      "type": "string",
+      "description": "The instrument this observation belongs to"
+    },
+    "code": {
+      "type": "string",
+      "description": "The item_id or scale_id this observation represents"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["item", "scale"],
+      "description": "Whether this is an item value or a scale score"
+    },
+    "value": {
+      "oneOf": [
+        { "type": "integer" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "null" }
+      ],
+      "description": "The observed value"
+    },
+    "value_type": {
+      "type": "string",
+      "enum": ["integer", "float", "string", "null"],
+      "description": "Type of the value"
+    },
+    "label": {
+      "type": "string",
+      "description": "Interpretation label (for scale observations)"
+    },
+    "raw_answer": {
+      "type": "string",
+      "description": "Original raw answer before recoding (for item observations)"
+    },
+    "position": {
+      "type": "integer",
+      "description": "Item position in instrument (for item observations)"
+    },
+    "missing": {
+      "type": "boolean",
+      "description": "Whether this value was missing"
+    }
+  }
+}
