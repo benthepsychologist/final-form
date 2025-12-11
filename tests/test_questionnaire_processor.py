@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from final_form.core import DomainProcessor, ProcessingStatus
-from final_form.domains.questionnaire import QuestionnaireProcessor
-from final_form.registry import BindingRegistry, MeasureRegistry
+from finalform.core import DomainProcessor, ProcessingStatus
+from finalform.domains.questionnaire import QuestionnaireProcessor
+from finalform.registry import BindingRegistry, MeasureRegistry
 
 
 @pytest.fixture
@@ -185,7 +185,7 @@ class TestValidateMeasure:
 
     def test_validate_wrong_kind(self, processor: QuestionnaireProcessor) -> None:
         """Test validation fails for wrong kind."""
-        from final_form.registry.models import MeasureSpec
+        from finalform.registry.models import MeasureSpec
 
         measure = MeasureSpec(
             type="measure_spec",
@@ -204,7 +204,7 @@ class TestValidateMeasure:
 
     def test_validate_missing_items(self, processor: QuestionnaireProcessor) -> None:
         """Test validation fails for measure with no items."""
-        from final_form.registry.models import MeasureSpec
+        from finalform.registry.models import MeasureSpec
 
         measure = MeasureSpec(
             type="measure_spec",
@@ -224,7 +224,7 @@ class TestValidateMeasure:
         processor: QuestionnaireProcessor,
     ) -> None:
         """Test validation fails for item without response_map."""
-        from final_form.registry.models import MeasureItem, MeasureSpec
+        from finalform.registry.models import MeasureItem, MeasureSpec
 
         measure = MeasureSpec(
             type="measure_spec",
@@ -251,7 +251,7 @@ class TestValidateMeasure:
         processor: QuestionnaireProcessor,
     ) -> None:
         """Test validation fails for scale referencing unknown item."""
-        from final_form.registry.models import MeasureItem, MeasureScale, MeasureSpec
+        from finalform.registry.models import MeasureItem, MeasureScale, MeasureSpec
 
         measure = MeasureSpec(
             type="measure_spec",

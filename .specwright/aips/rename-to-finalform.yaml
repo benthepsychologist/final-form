@@ -1,0 +1,245 @@
+aip_id: AIP-finalform-2025-12-11-001
+context:
+  background: 'The project is currently named `final-form` but the hyphen is inconvenient for:
+
+    1. Python imports (underscores required: `final_form` vs `finalform`)
+
+    2. CLI usage (typing `final-form` vs `finalform`)
+
+    3. Overall consistency (single word is cleaner)'
+  constraints:
+  - Rename the package directory first, then update all references
+  - Rename GitHub repo/remote last (breaks local session)
+  - Keep env vars with underscores for backwards compatibility (optional)
+  - Keep JSON field names with underscores (e.g., final_form_version)
+created: '2025-12-11T21:30:00.000000+00:00'
+meta:
+  created_at: '2025-12-11T21:30:00.000000+00:00'
+  created_by: benthepsychologist
+objective:
+  acceptance_criteria:
+  - '`pyproject.toml` updated with new package name and URLs'
+  - 'Package directory renamed from `final_form/` to `finalform/`'
+  - All code references updated (imports, version string, error messages, docstrings)
+  - All documentation updated (README, FINAL-FORM-ARCH, FINAL-FORM-BUILD-PLAN)
+  - All spec/AIP files updated with new project_slug and URLs
+  - 'CLI command changed from `final-form` to `finalform`'
+  - 'Config directory changed from `~/.config/final-form` to `~/.config/finalform`'
+  - CI green (lint + unit)
+  - 'GitHub repository renamed from `final-form` to `finalform` (do last)'
+  - Git remote updated to point to new repository (do last)
+  goal: Remove hyphen from project name across all references
+orchestrator_contract:
+  artifacts_dir: .aip_artifacts/AIP-finalform-2025-12-11-001
+  logging: jsonl
+  state_machine:
+    events:
+    - run_step
+    - await_gate
+    - approve
+    - reject
+    - retry
+    - escalate
+    - complete
+    states:
+    - pending
+    - running
+    - awaiting_human
+    - failed
+    - succeeded
+    - rolled_back
+plan:
+- description: Rename Package Directory
+  kind: bash
+  prompt: 'Rename the source directory from final_form to finalform:
+
+    ```bash
+
+    mv final_form finalform
+
+    ```'
+  role: coding_agent
+  step_id: step-001
+- description: Update pyproject.toml
+  kind: code
+  prompt: 'Update `pyproject.toml`:
+
+    - `name = "final-form"` → `name = "finalform"`
+
+    - `final-form = "final_form.cli:app"` → `finalform = "finalform.cli:app"`
+
+    - `packages = ["final_form"]` → `packages = ["finalform"]`
+
+    - `--cov=final_form` → `--cov=finalform` in addopts
+
+    - GitHub URLs if present'
+  role: coding_agent
+  step_id: step-002
+- description: Update Source Files
+  kind: code
+  prompt: 'Update all source files in `finalform/`:
+
+    - Docstrings and comments mentioning `final-form` → `finalform`
+
+    - Config paths `~/.config/final-form` → `~/.config/finalform`
+
+    - CLI app name and output strings
+
+    - Keep environment variables as-is for backwards compatibility (FINAL_FORM_HOME, etc.)'
+  role: coding_agent
+  step_id: step-003
+- description: Update All Imports
+  kind: code
+  prompt: 'Update all import statements across the codebase:
+
+    - `from final_form` → `from finalform`
+
+    - `import final_form` → `import finalform`
+
+    - `final_form.` → `finalform.`
+
+
+    Files affected:
+
+    - All files in `finalform/` (internal imports)
+
+    - All files in `tests/` (test imports, 17 files, 52 occurrences)'
+  role: coding_agent
+  step_id: step-004
+- description: Update Documentation
+  kind: code
+  prompt: 'Replace all `final-form` references with `finalform` in:
+
+    - `README.md` (~15 occurrences)
+
+    - `FINAL-FORM-ARCH.md` (~25 occurrences)
+
+    - `FINAL-FORM-BUILD-PLAN.md` (~5 occurrences)
+
+
+    Consider renaming doc files:
+
+    - `FINAL-FORM-ARCH.md` → `FINALFORM-ARCH.md`
+
+    - `FINAL-FORM-BUILD-PLAN.md` → `FINALFORM-BUILD-PLAN.md`'
+  role: coding_agent
+  step_id: step-005
+- description: Update Schemas
+  kind: code
+  prompt: 'Update `schemas/measurement_event.schema.json`:
+
+    - Line 80: description `When final-form processed` → `When finalform processed`
+
+    - Line 84: description `Version of final-form` → `Version of finalform`
+
+
+    Keep `final_form_version` as the field name (underscores are standard in JSON field names).'
+  role: coding_agent
+  step_id: step-006
+- description: Update Spec/AIP Files
+  kind: code
+  prompt: 'Update spec files:
+
+    - `.specwright/specs/final-form-initial-spec.md` - `project_slug: final-form` → `project_slug: finalform`
+
+    - `.specwright/specs/domain-modular-architecture-refactor.md` - same updates
+
+
+    Update AIP files:
+
+    - `.specwright/aips/final-form-initial-spec.yaml` - `aip_id: AIP-final-form-*` → `AIP-finalform-*`, repo URL, project_slug
+
+    - `.specwright/aips/domain-modular-architecture-refactor.yaml` - same updates
+
+
+    Do NOT update `.specwright.yaml` current spec/AIP paths yet.'
+  role: coding_agent
+  step_id: step-007
+- description: Update Scripts
+  kind: code
+  prompt: 'Update `scripts/convert_registry.py`:
+
+    - Line 5: comment mentioning `final-form`
+
+    - Line 129: path `/workspace/final-form/` → `/workspace/finalform/`'
+  role: coding_agent
+  step_id: step-008
+- description: Regenerate Lock File
+  kind: bash
+  prompt: 'Regenerate the uv lock file:
+
+    ```bash
+
+    uv lock
+
+    ```'
+  role: coding_agent
+  step_id: step-009
+- description: Run CI Checks
+  gate_ref: 'G1: Code Readiness'
+  kind: bash
+  prompt: 'Run linting and tests:
+
+    ```bash
+
+    uv run ruff check .
+
+    uv run pytest -q
+
+    ```'
+  role: coding_agent
+  step_id: step-010
+- description: Verify No Remaining References
+  kind: bash
+  prompt: 'Run a final check for any remaining `final-form` or `final_form` references:
+
+    ```bash
+
+    grep -r "final-form" --include="*.py" --include="*.md" --include="*.json" --include="*.yaml" . | grep -v ".git" | grep -v ".specwright.yaml"
+
+    grep -r "final_form" --include="*.py" . | grep -v ".git"
+
+    ```
+
+
+    Any remaining references should be intentional (e.g., historical data, env vars for backwards compat).'
+  role: coding_agent
+  step_id: step-011
+- description: Rename GitHub Repository (do last)
+  kind: manual
+  prompt: 'Rename the GitHub repository from `benthepsychologist/final-form` to `benthepsychologist/finalform` via GitHub settings.
+
+
+    **Warning:** This will break the local git remote until the next step is completed.'
+  role: human
+  step_id: step-012
+- description: Update Git Remote
+  kind: bash
+  prompt: 'Update the git remote to point to the new repository:
+
+    ```bash
+
+    git remote set-url origin git@github.com:benthepsychologist/finalform.git
+
+    ```'
+  role: coding_agent
+  step_id: step-013
+- description: Update .specwright.yaml Paths
+  kind: code
+  prompt: 'After repo rename is complete, update `.specwright.yaml` if needed:
+
+    - Line 11: current spec path
+
+    - Line 12: current AIP path'
+  role: coding_agent
+  step_id: step-014
+project_slug: finalform
+repo:
+  default_branch: master
+  url: git@github.com:benthepsychologist/final-form.git
+  working_branch: feat/rename-to-finalform
+spec_version: 1.0.0
+tier: C
+title: Rename project from final-form to finalform
+updated: '2025-12-11T22:00:00.000000+00:00'
+version: '0.1'

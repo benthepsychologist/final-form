@@ -1,13 +1,13 @@
-# final-form
+# finalform
 
 Clinical questionnaire scoring library with structured output.
 
 ## Installation
 
 ```bash
-pip install final-form
+pip install finalform
 # or
-uv add final-form
+uv add finalform
 ```
 
 ## Quick Start
@@ -16,14 +16,14 @@ Process a canonical form submission (from canonizer) for a specific measure:
 
 ```python
 from pathlib import Path
-from final_form.input import FormInputClient, process_form_submission
-from final_form.registry import MeasureRegistry
+from finalform.input import FormInputClient, process_form_submission
+from finalform.registry import MeasureRegistry
 
 # Setup
 client = FormInputClient(Path("form-mappings"))
 registry = MeasureRegistry(Path("measure-registry"))
 
-# 1. Configure mapping: tell final-form where PHQ-9 lives in this form
+# 1. Configure mapping: tell finalform where PHQ-9 lives in this form
 client.save_item_map(
     form_id="client_intake_v3",
     measure_id="phq9",
@@ -69,8 +69,8 @@ for obs in result.events[0].observations:
 High-level API for processing canonical form submissions from canonizer.
 
 ```python
-from final_form.input import FormInputClient, process_form_submission
-from final_form.registry import MeasureRegistry
+from finalform.input import FormInputClient, process_form_submission
+from finalform.registry import MeasureRegistry
 
 result = process_form_submission(
     form_submission,                    # Canonical form dict from canonizer
@@ -108,7 +108,7 @@ result = process_form_submission(
 Local storage for field_id → item_id mappings. Stores one JSON file per (form_id, measure_id) pair.
 
 ```python
-from final_form.input import FormInputClient
+from finalform.input import FormInputClient
 
 client = FormInputClient(Path("form-mappings"))
 
@@ -175,7 +175,7 @@ Each mapping file:
 ### Exceptions
 
 ```python
-from final_form.input import (
+from finalform.input import (
     MissingFormIdError,    # form_id not in submission and not provided
     MissingItemMapError,   # no mapping configured for (form_id, measure_id)
     UnmappedFieldError,    # form has fields not in item_map (strict=True)
@@ -195,7 +195,7 @@ from final_form.input import (
 For processing pre-bound forms with static binding specs.
 
 ```python
-from final_form.pipeline import Pipeline, PipelineConfig
+from finalform.pipeline import Pipeline, PipelineConfig
 
 config = PipelineConfig(
     measure_registry_path=Path("measure-registry"),      # Required
@@ -304,9 +304,9 @@ Observation(
 For lower-level control, use the domain processor directly:
 
 ```python
-from final_form.registry import MeasureRegistry
-from final_form.domains.questionnaire import QuestionnaireProcessor
-from final_form.registry.models import FormBindingSpec, BindingSection, Binding
+from finalform.registry import MeasureRegistry
+from finalform.domains.questionnaire import QuestionnaireProcessor
+from finalform.registry.models import FormBindingSpec, BindingSection, Binding
 
 # Load measure spec
 registry = MeasureRegistry(Path("measure-registry"))
@@ -360,7 +360,7 @@ result = processor.process(
 ## CLI Usage
 
 ```bash
-final-form run \
+finalform run \
   --in forms.jsonl \
   --out measurements.jsonl \
   --binding example_intake \
@@ -458,7 +458,7 @@ Located at `form-binding-registry/bindings/<binding_id>/<version>.json`:
               │
               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    final-form                                    │
+│                    finalform                                    │
 │                                                                  │
 │  ┌─────────────────┐      ┌──────────────────┐                  │
 │  │ FormInputClient │ ───▶ │ field_id→item_id │  (local storage) │
@@ -509,13 +509,13 @@ uv sync --dev
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=final_form
+uv run pytest --cov=finalform
 
 # Type checking
-uv run mypy final_form
+uv run mypy finalform
 
 # Linting
-uv run ruff check final_form
+uv run ruff check finalform
 ```
 
 ## License

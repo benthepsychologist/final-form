@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from final_form.mapping import MappedItem, Mapper, MappingError, MappingResult
-from final_form.registry import BindingRegistry
+from finalform.mapping import MappedItem, Mapper, MappingResult
+from finalform.registry import BindingRegistry
 
 
 @pytest.fixture

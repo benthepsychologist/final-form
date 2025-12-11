@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from final_form.registry import MeasureRegistry
+from finalform.registry import MeasureRegistry
 
 
 @pytest.fixture

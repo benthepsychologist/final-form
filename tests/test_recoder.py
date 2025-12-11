@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from final_form.mapping import MappedItem, MappedSection, MappingResult
-from final_form.recoding import RecodedItem, Recoder, RecodingError, RecodingResult
-from final_form.registry import MeasureRegistry
+from finalform.mapping import MappedItem, MappedSection, MappingResult
+from finalform.recoding import RecodedItem, Recoder, RecodingError, RecodingResult
+from finalform.registry import MeasureRegistry
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@
 """Convert assessment_registry.json to measure_spec format.
 
 Reads the legacy assessment registry and converts each measure
-to the final-form measure_spec schema format.
+to the finalform measure_spec schema format.
 """
 
 import json
@@ -126,7 +126,7 @@ def main():
     measures = registry.get("measures", {})
 
     # Output directory
-    output_dir = Path("/workspace/final-form/measure-registry/measures")
+    output_dir = Path("/workspace/finalform/measure-registry/measures")
 
     # Skip measures we already have or that have incomplete data
     skip_measures = {"phq_9", "gad_7", "dts", "cfs"}  # phq_9/gad_7 exist, dts/cfs have incomplete format

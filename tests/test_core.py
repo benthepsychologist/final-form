@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from final_form.core import (
+from finalform.core import (
     DiagnosticError,
     DiagnosticWarning,
     DomainProcessor,
@@ -18,8 +18,8 @@ from final_form.core import (
     Source,
     Telemetry,
 )
-from final_form.core.router import DomainNotFoundError
-from final_form.registry.models import FormBindingSpec, MeasureSpec
+from finalform.core.router import DomainNotFoundError
+from finalform.registry.models import FormBindingSpec, MeasureSpec
 
 
 class TestCoreModels:
@@ -260,7 +260,7 @@ class TestRouterFactory:
 
     def test_create_router(self) -> None:
         """Test creating a router with default processors."""
-        from final_form.core import create_router
+        from finalform.core import create_router
 
         router = create_router()
 

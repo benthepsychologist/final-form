@@ -77,11 +77,11 @@
         "processed_at": {
           "type": "string",
           "format": "date-time",
-          "description": "When final-form processed this record"
+          "description": "When finalform processed this record"
         },
         "final_form_version": {
           "type": "string",
-          "description": "Version of final-form that processed this"
+          "description": "Version of finalform that processed this"
         },
         "instrument_spec": {
           "type": "string",

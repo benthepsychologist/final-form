@@ -4,17 +4,17 @@ from pathlib import Path
 
 import pytest
 
-from final_form.builders import (
+from finalform.builders import (
     MeasurementEvent,
     MeasurementEventBuilder,
     Observation,
     Source,
     Telemetry,
 )
-from final_form.interpretation import InterpretationResult, InterpretedScore
-from final_form.recoding import RecodedItem, RecodedSection
-from final_form.registry import BindingRegistry
-from final_form.scoring import ScaleScore, ScoringResult
+from finalform.interpretation import InterpretationResult, InterpretedScore
+from finalform.recoding import RecodedItem, RecodedSection
+from finalform.registry import BindingRegistry
+from finalform.scoring import ScaleScore, ScoringResult
 
 
 @pytest.fixture

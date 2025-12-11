@@ -2,17 +2,17 @@
 
 import pytest
 
-from final_form.diagnostics import (
+from finalform.diagnostics import (
     DiagnosticError,
     DiagnosticsCollector,
     DiagnosticWarning,
     ProcessingStatus,
     QualityMetrics,
 )
-from final_form.mapping import MappedItem, MappedSection, MappingResult
-from final_form.recoding import RecodedItem, RecodedSection, RecodingResult
-from final_form.scoring import ScaleScore, ScoringResult
-from final_form.validation import ValidationResult
+from finalform.mapping import MappedItem, MappedSection, MappingResult
+from finalform.recoding import RecodedItem, RecodedSection, RecodingResult
+from finalform.scoring import ScaleScore, ScoringResult
+from finalform.validation import ValidationResult
 
 
 @pytest.fixture

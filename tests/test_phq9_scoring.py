@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from final_form.recoding import RecodedItem, RecodedSection
-from final_form.registry import MeasureRegistry
-from final_form.scoring import ScoringEngine
+from finalform.recoding import RecodedItem, RecodedSection
+from finalform.registry import MeasureRegistry
+from finalform.scoring import ScoringEngine
 
 
 @pytest.fixture

@@ -2,8 +2,8 @@
 
 import pytest
 
-from final_form.core import DomainProcessor
-from final_form.domains import LabProcessor, VitalProcessor, WearableProcessor
+from finalform.core import DomainProcessor
+from finalform.domains import LabProcessor, VitalProcessor, WearableProcessor
 
 
 class TestLabProcessor:

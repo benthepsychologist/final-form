@@ -1,18 +1,17 @@
 """Tests for form input handling (FormInputClient and process_form_submission)."""
 
-import json
 from pathlib import Path
 
 import pytest
 
-from final_form.input import (
+from finalform.input import (
     FormInputClient,
     MissingFormIdError,
     MissingItemMapError,
     UnmappedFieldError,
     process_form_submission,
 )
-from final_form.registry import MeasureRegistry
+from finalform.registry import MeasureRegistry
 
 
 @pytest.fixture

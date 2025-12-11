@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from final_form.interpretation import InterpretationResult, InterpretedScore, Interpreter
-from final_form.registry import MeasureRegistry
-from final_form.scoring import ScaleScore, ScoringResult
+from finalform.interpretation import InterpretationResult, InterpretedScore, Interpreter
+from finalform.registry import MeasureRegistry
+from finalform.scoring import ScaleScore, ScoringResult
 
 
 @pytest.fixture

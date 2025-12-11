@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from final_form.registry import BindingRegistry, MeasureRegistry
-from final_form.registry.bindings import BindingNotFoundError
-from final_form.registry.measures import MeasureNotFoundError
+from finalform.registry import BindingRegistry, MeasureRegistry
+from finalform.registry.bindings import BindingNotFoundError
+from finalform.registry.measures import MeasureNotFoundError
 
 
 class TestMeasureRegistry:

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "final-form"
+name = "finalform"
 version = "0.1.0"
 description = "Semantic processing engine for psychological instruments with FHIR-aligned output"
 readme = "README.md"
@@ -37,14 +37,14 @@ dev = [
 ]
 
 [project.scripts]
-final-form = "final_form.cli:app"
+finalform = "finalform.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["final_form"]
+packages = ["finalform"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --cov=final_form --cov-report=term-missing"
+addopts = "-v --cov=finalform --cov-report=term-missing"
 
 [tool.ruff]
 line-length = 100

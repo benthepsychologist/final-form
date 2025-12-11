@@ -4,16 +4,16 @@ from pathlib import Path
 
 import pytest
 
-from final_form.recoding import RecodedItem, RecodedSection
-from final_form.registry import MeasureRegistry
-from final_form.scoring import (
+from finalform.recoding import RecodedItem, RecodedSection
+from finalform.registry import MeasureRegistry
+from finalform.scoring import (
     ScaleScore,
     ScoringEngine,
     ScoringResult,
     apply_reverse_scoring,
     compute_score,
 )
-from final_form.scoring.methods import prorate_score
+from finalform.scoring.methods import prorate_score
 
 
 @pytest.fixture

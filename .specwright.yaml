@@ -3,10 +3,10 @@ paths:
   specs: .specwright/specs
   aips: .specwright/aips
 repo:
-  default_branch: main
+  default_branch: master
 user:
   default_owner: null
   default_tier: null
 current:
-  spec: .specwright/specs/domain-modular-architecture-refactor.md
-  aip: /workspace/final-form/.specwright/aips/domain-modular-architecture-refactor.yaml
+  spec: .specwright/specs/rename-to-finalform.md
+  aip: .specwright/aips/rename-to-finalform.yaml

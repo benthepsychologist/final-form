@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from final_form.recoding import RecodedItem, RecodedSection
-from final_form.registry import MeasureRegistry
-from final_form.validation import ValidationResult, Validator
+from finalform.recoding import RecodedItem, RecodedSection
+from finalform.registry import MeasureRegistry
+from finalform.validation import ValidationResult, Validator
 
 
 @pytest.fixture

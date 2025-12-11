@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from final_form.pipeline import Pipeline, PipelineConfig
+from finalform.pipeline import Pipeline, PipelineConfig
 
 
 @pytest.fixture
