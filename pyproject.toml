@@ -26,6 +26,7 @@ dependencies = [
     "typer>=0.18.0",
     "jsonschema>=4.0",
     "rich>=13.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +38,7 @@ dev = [
 ]
 
 [project.scripts]
-finalform = "finalform.cli:app"
+form = "finalform.cli:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["finalform"]
